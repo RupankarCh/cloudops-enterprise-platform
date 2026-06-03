@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudops-node-api
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: cloudops-node-api
+
+  template:
+    metadata:
+      labels:
+        app: cloudops-node-api
+
+    spec:
+      containers:
+      - name: cloudops-node-api
+        image: cloudops-node-api:latest
+        imagePullPolicy: Never
+
+        ports:
+        - containerPort: 4000
