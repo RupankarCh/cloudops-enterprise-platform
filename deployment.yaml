@@ -18,8 +18,8 @@ spec:
     spec:
       containers:
       - name: cloudops-node-api
-        image: cloudops-node-api:latest
-        imagePullPolicy: Never
+        image: rupankarch/cloudops-node-api:latest
+        imagePullPolicy: Always
 
         ports:
         - containerPort: 4000
