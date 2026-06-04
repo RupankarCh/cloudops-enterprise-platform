@@ -2,24 +2,26 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: cloudops-node-api
-
+  labels:
+    app: cloudops-node-api
+publicSpec:
 spec:
   replicas: 1
-
   selector:
     matchLabels:
       app: cloudops-node-api
-
   template:
     metadata:
       labels:
         app: cloudops-node-api
-
     spec:
       containers:
-      - name: cloudops-node-api
-        image: rupankarch/cloudops-node-api:latest
-        imagePullPolicy: Always
-
-        ports:
-        - containerPort: 4000
+        - name: cloudops-node-api
+          image: RupankarCh/cloudops-node-api:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          # --- ADD THIS ENVIRONMENT SECTION BELOW ---
+          env:
+            - name: AWS_DEFAULT_REGION
+              value: "us-east-1"

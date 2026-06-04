@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-kinesis": "^3.1061.0",
     "express": "^5.2.1"
   },
   "devDependencies": {
