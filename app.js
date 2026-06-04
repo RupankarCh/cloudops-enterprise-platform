@@ -2,7 +2,7 @@ const express = require('express');
 const { KinesisClient, PutRecordCommand } = require("@aws-sdk/client-kinesis");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 
 // 1. Initialize the AWS Kinesis Client with environment variables 
 // passed directly from the Kubernetes container environment config
