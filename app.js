@@ -1,5 +1,6 @@
 const express = require('express');
 const { KinesisClient, PutRecordCommand } = require("@aws-sdk/client-kinesis");
+const { exec } = require('child_process'); // 👈 Added for running the Python ML script
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -19,7 +20,7 @@ app.use(async (req, res, next) => {
             endpoint: req.path,
             method: req.method,
             status: res.statusCode,
-            // Simulating variable traffic metrics (useful later for Phase 5 Machine Learning training)
+            // Simulating variable traffic metrics (useful for Machine Learning training data patterns)
             requestVolume: Math.floor(Math.random() * 1200) 
         };
 
@@ -41,11 +42,40 @@ app.use(async (req, res, next) => {
 });
 
 // 3. Application Routes
+
+// Baseline Status Route
 app.get('/api/status', (req, res) => {
     res.json({ 
         status: "running", 
         project: "CloudOps Enterprise Platform",
         pipeline: "Module 7 Kinesis Streaming Integration Enabled" 
+    });
+});
+
+// 🚀 New Module 7 AI/ML Automated Inference Route 🚀
+app.get('/api/predict-risk', (req, res) => {
+    // Extract input parameter or pass a randomized variable load fallback
+    const volume = req.query.volume || Math.floor(Math.random() * 1200);
+
+    // Call the machine learning engine script passing the input metrics parameter
+    exec(`python3 traffic_ml.py ${volume}`, (error, stdout, stderr) => {
+        if (error || stderr) {
+            console.error("Exec error:", error || stderr);
+            return res.status(500).json({ error: "ML Inference Failed Execution Engine." });
+        }
+
+        // Extract the prediction token tag from standard out
+        const predictionLine = stdout.split('\n').find(line => line.startsWith('PREDICTION:'));
+        const riskResult = predictionLine ? predictionLine.replace('PREDICTION:', '').trim() : "UNKNOWN";
+
+        res.json({
+            timestamp: new Date().toISOString(),
+            inputMetrics: {
+                currentRequestVolumePerMin: parseInt(volume)
+            },
+            aiInferenceModel: "Scikit-Learn DecisionTreeClassifier",
+            operationalRiskAssessment: riskResult
+        });
     });
 });
 
