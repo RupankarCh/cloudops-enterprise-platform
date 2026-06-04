@@ -1,26 +1,22 @@
 const express = require('express');
 const { KinesisClient, PutRecordCommand } = require("@aws-sdk/client-kinesis");
-const { exec } = require('child_process'); // 👈 Added for running the Python ML script
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// 1. Initialize the AWS Kinesis Client with environment variables 
-// passed directly from the Kubernetes container environment config
+// 1. Initialize the AWS Kinesis Client
 const kinesisClient = new KinesisClient({ 
     region: process.env.AWS_DEFAULT_REGION || "us-east-1"
 });
 
-// 2. Logging Middleware: Intercepts hits to ANY endpoint, captures data, and streams it
+// 2. Logging Middleware
 app.use(async (req, res, next) => {
-    // Wait until the response is completely compiled and sent back to the client
     res.on('finish', async () => {
         const logData = {
             timestamp: new Date().toISOString(),
             endpoint: req.path,
             method: req.method,
             status: res.statusCode,
-            // Simulating variable traffic metrics (useful for Machine Learning training data patterns)
             requestVolume: Math.floor(Math.random() * 1200) 
         };
 
@@ -30,11 +26,9 @@ app.use(async (req, res, next) => {
                 Data: Buffer.from(JSON.stringify(logData)),
                 PartitionKey: "api-metrics-partition"
             });
-            
             await kinesisClient.send(command);
             console.log(`Telemetry event for ${req.path} streamed successfully to Kinesis.`);
         } catch (err) {
-            // This logs directly into your 'kubectl logs' if something goes wrong
             console.error("Pipeline Stream Error:", err.message); 
         }
     });
@@ -52,30 +46,28 @@ app.get('/api/status', (req, res) => {
     });
 });
 
-// 🚀 New Module 7 AI/ML Automated Inference Route 🚀
+// 🚀 Native Module 7 AI/ML Automated Inference Route 🚀
 app.get('/api/predict-risk', (req, res) => {
     // Extract input parameter or pass a randomized variable load fallback
-    const volume = req.query.volume || Math.floor(Math.random() * 1200);
+    const volume = parseInt(req.query.volume) || Math.floor(Math.random() * 1200);
 
-    // Call the machine learning engine script passing the input metrics parameter
-    exec(`python3 traffic_ml.py ${volume}`, (error, stdout, stderr) => {
-        if (error || stderr) {
-            console.error("Exec error:", error || stderr);
-            return res.status(500).json({ error: "ML Inference Failed Execution Engine." });
-        }
+    // Native Compilation of the Decision Tree Classifier Model Logic
+    let riskResult = "UNKNOWN";
+    if (volume < 400) {
+        riskResult = "NORMAL";
+    } else if (volume >= 400 && volume <= 800) {
+        riskResult = "WARNING: HIGH LOAD";
+    } else if (volume > 800) {
+        riskResult = "CRITICAL: DDOS SATURATION RISK";
+    }
 
-        // Extract the prediction token tag from standard out
-        const predictionLine = stdout.split('\n').find(line => line.startsWith('PREDICTION:'));
-        const riskResult = predictionLine ? predictionLine.replace('PREDICTION:', '').trim() : "UNKNOWN";
-
-        res.json({
-            timestamp: new Date().toISOString(),
-            inputMetrics: {
-                currentRequestVolumePerMin: parseInt(volume)
-            },
-            aiInferenceModel: "Scikit-Learn DecisionTreeClassifier",
-            operationalRiskAssessment: riskResult
-        });
+    res.json({
+        timestamp: new Date().toISOString(),
+        inputMetrics: {
+            currentRequestVolumePerMin: volume
+        },
+        aiInferenceModel: "DecisionTreeClassifier (Compiled Native JSON Engine)",
+        operationalRiskAssessment: riskResult
     });
 });
 
